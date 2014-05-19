@@ -1,21 +1,44 @@
 (function ($) {
 
   $.fn.rating = function () {
-
-    var element;
+    
+		var element;
 
     // A private function to highlight a star corresponding to a given value
     function _paintValue(ratingInput, value) {
       var selectedStar = $(ratingInput).find('[data-value=' + value + ']');
-      selectedStar.removeClass('glyphicon-star-empty').addClass('glyphicon-star');
-      selectedStar.prevAll('[data-value]').removeClass('glyphicon-star-empty').addClass('glyphicon-star');
-      selectedStar.nextAll('[data-value]').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+      selectedStar.removeClass('fa-star-o').addClass('fa-star');
+      selectedStar.prevAll('[data-value]').removeClass('fa-star-o').addClass('fa-star');
+      selectedStar.nextAll('[data-value]').removeClass('fa-star').addClass('fa-star-o');
+			
+			// if star has been clicked use the proper color
+			var valuer = value;
+			var inputValue = $('#rating').val();
+			if (inputValue !== "") {
+				valuer = parseInt(inputValue);
+			}
+			var self = $(ratingInput);
+			self.removeClass( "fa-danger fa-warning-c fa-success" );
+			switch (valuer) {
+				case 0:
+    			self.addClass( "fa-danger" );
+    			break;
+				case 1:
+    			self.addClass( "fa-warning-c" );
+    			break;
+				case 2:
+				case 3:
+				case 4:
+    			self.addClass( "fa-success" );
+    			break;
+			}				
     }
 
     // A private function to remove the highlight for a selected rating
     function _clearValue(ratingInput) {
       var self = $(ratingInput);
-      self.find('[data-value]').removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+      self.find('[data-value]').removeClass('fa-star').addClass('fa-star-o');
+			self.removeClass( "fa-danger fa-warning-c fa-success" ).addClass( "fa-primary" );	// default link color
     }
 
     // A private function to change the actual value to the hidden field
@@ -23,8 +46,7 @@
       input.val(val).trigger('change');
       if (val === input.data('empty-value')) {
         input.siblings('.rating-clear').hide();
-      }
-      else {
+      } else {
         input.siblings('.rating-clear').show();
       }
     }
@@ -34,7 +56,7 @@
 
       var el, i,
         originalInput = $(this[element]),
-        max = originalInput.data('max') || 5,
+        max = originalInput.data('max') || 4,
         min = originalInput.data('min') || 0,
         clearable = originalInput.data('clearable') || null,
         stars = '';
@@ -42,20 +64,20 @@
       // HTML element construction
       for (i = min; i <= max; i++) {
         // Create <max> empty stars
-        stars += ['<span class="glyphicon glyphicon-star-empty" data-value="', i, '"></span>'].join('');
+        stars += ['<i class="fa fa-2x fa-star-o" data-value="', i, '"></i>'].join('');
       }
       // Add a clear link if clearable option is set
       if (clearable) {
         stars += [
           ' <a class="rating-clear" style="display:none;" href="javascript:void">',
-          '<span class="glyphicon glyphicon-remove"></span> ',
+          '<i class="fa fa-times"></i> ',
           clearable,
           '</a>'].join('');
       }
 
       // Clone with data and events the original input to preserve any additional data and event bindings.
       var newInput = originalInput.clone(true)
-        .attr('type', 'hidden')
+        .addClass("hidden")
         .data('max', max)
         .data('min', min);
 
@@ -84,7 +106,7 @@
           val = input.val(),
           min = input.data('min'),
           max = input.data('max');
-        if (val >= min && val <= max) {
+        if (val !== "" && val >= min && val <= max) {		// don't clear if it's been clicked
           _paintValue(self.closest('.rating-input'), val);
         } else {
           _clearValue(self.closest('.rating-input'));
@@ -117,8 +139,7 @@
         if (val !== "" && +val >= min && +val <= max) {
           _paintValue(this, val);
           $(this).find('.rating-clear').show();
-        }
-        else {
+        } else {
           input.val(input.data('empty-value'));
           _clearValue(this);
         }
